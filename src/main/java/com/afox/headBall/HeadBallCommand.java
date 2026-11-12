@@ -24,7 +24,7 @@ public class HeadBallCommand implements CommandExecutor {
         }
 
         if (args.length == 0) {
-            player.sendMessage("§e/headball spawn §7| §e/headball remove §7| §e/headball reload");
+            player.sendMessage("§e/headball spawn §7| §e/headball remove §7| §e/headball reload §7| §e/headball head");
             return true;
         }
 
@@ -45,7 +45,11 @@ public class HeadBallCommand implements CommandExecutor {
                 plugin.reloadSettings();
                 player.sendMessage("§aКонфиг перезагружен. Пересоздай мяч.");
             }
-            default -> player.sendMessage("§e/headball spawn §7| §e/headball remove §7| §e/headball reload");
+            case "head" -> {
+                player.getInventory().addItem(Ball.createHeadItem(plugin.getSettings(), player));
+                player.sendMessage("§aГолова выдана.");
+            }
+            default -> player.sendMessage("§e/headball spawn §7| §e/headball remove §7| §e/headball reload §7| §e/headball head");
         }
         return true;
     }

@@ -40,30 +40,35 @@ public class Ball {
 
     public Ball(Location location, Player owner, Settings settings) {
         this.settings = settings;
-        this.location = location.clone();
+        location = location.clone();
+        location.setYaw(0f);
+        location.setPitch(0f);
+        this.location = location;
         World world = location.getWorld();
 
-        this.hitbox = world.spawn(location, Interaction.class);
-        this.hitbox.setInteractionWidth(0.6f);
-        this.hitbox.setInteractionHeight(0.6f);
-        this.hitbox.setResponsive(true);
-        this.hitbox.addScoreboardTag("headball");
+        this.hitbox = world.spawn(location, Interaction.class, entity -> {
+            entity.setInteractionWidth(0.6f);
+            entity.setInteractionHeight(0.6f);
+            entity.setResponsive(true);
+            entity.addScoreboardTag("headball");
+        });
 
-        this.display = world.spawn(location, ItemDisplay.class);
-        this.display.setItemStack(createHead(owner));
-        this.display.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
-        this.display.setTransformation(new Transformation(
-                new Vector3f(0f, settings.yOffset, 0f),
-                new AxisAngle4f((float) Math.toRadians(settings.pitch), 1f, 0f, 0f),
-                new Vector3f(settings.scale, settings.scale, settings.scale),
-                new AxisAngle4f()
-        ));
-        this.display.addScoreboardTag("headball");
+        this.display = world.spawn(location, ItemDisplay.class, entity -> {
+            entity.setItemStack(createHeadItem(settings, owner));
+            entity.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
+            entity.setTransformation(new Transformation(
+                    new Vector3f(0f, settings.yOffset, 0f),
+                    new AxisAngle4f((float) Math.toRadians(settings.pitch), 1f, 0f, 0f),
+                    new Vector3f(settings.scale, settings.scale, settings.scale),
+                    new AxisAngle4f()
+            ));
+            entity.addScoreboardTag("headball");
+        });
 
         updateEntities();
     }
 
-    private ItemStack createHead(Player owner) {
+    public static ItemStack createHeadItem(Settings settings, Player owner) {
         ItemStack item = new ItemStack(Material.PLAYER_HEAD);
         SkullMeta meta = (SkullMeta) item.getItemMeta();
         if (meta == null) {
@@ -72,8 +77,9 @@ public class Ball {
 
         PlayerProfile profile;
         if (settings.texture != null && !settings.texture.isBlank()) {
-            profile = Bukkit.createProfile(UUID.randomUUID(), "headball");
-            profile.setProperty(new ProfileProperty("textures", settings.texture));
+            profile = Bukkit.createProfile(UUID.randomUUID());
+            profile.getProperties().add(new ProfileProperty("textures", settings.texture));
+            Bukkit.getLogger().info("[HeadBall] applying skin, payload length=" + settings.texture.length());
         } else if (owner != null) {
             profile = owner.getPlayerProfile();
         } else {
@@ -82,6 +88,12 @@ public class Ball {
 
         meta.setPlayerProfile(profile);
         item.setItemMeta(meta);
+
+        SkullMeta check = (SkullMeta) item.getItemMeta();
+        if (check != null && check.getPlayerProfile() != null) {
+            Bukkit.getLogger().info("[HeadBall] readback properties=" + check.getPlayerProfile().getProperties());
+        }
+
         return item;
     }
 
