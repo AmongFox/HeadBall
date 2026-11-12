@@ -17,6 +17,12 @@ java {
 }
 
 tasks {
+    withType<JavaCompile>().configureEach {
+        options.encoding = "UTF-8"
+    }
+    withType<ProcessResources>().configureEach {
+        filteringCharset = "UTF-8"
+    }
     processResources {
         val props = mapOf("version" to version)
         filesMatching("plugin.yml") {
