@@ -1,0 +1,15 @@
+name: HeadBall
+version: '${version}'
+
+main: com.afox.headball.HeadBall
+api-version: '1.20'
+
+commands:
+  headball:
+    description: Spawn or remove football balls
+    usage: /headball <spawn|remove>
+    permission: headball.use
+
+permissions:
+  headball.use:
+    default: op

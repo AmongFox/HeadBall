@@ -1,0 +1,50 @@
+# ===== НЕ должно попадать в git =====
+
+# Gradle
+.gradle/
+.kotlin/
+/build/
+/.gradle/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+# Eclipse
+.settings/
+.project
+.classpath
+bin/
+
+# VS Code
+.vscode/
+
+# Paper-сервер (runServer): мир, логи, плагины, eula
+/run/
+/logs/
+*.log
+replay_pid*.log
+
+# JVM crash logs / dumps
+hs_err_pid*
+*.hprof
+*.jfr
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# ===== ДОЛЖНО попадать в git =====
+# (явно оставляем, даже если попадёт под правила выше)
+!/gradlew
+!/gradlew.bat
+!/gradle/wrapper/gradle-wrapper.jar
+!/gradle/wrapper/gradle-wrapper.properties
+!/gradle.properties
+!/build.gradle.kts
+!/settings.gradle.kts
+!/src/**

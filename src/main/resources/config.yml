@@ -1,0 +1,9 @@
+ball:
+  texture: ""
+  scale: 1.1
+  y-offset: 0.3
+  pitch: 20.0
+  kick-speed: 0.8
+  kick-speed-sprint: 1.5
+  kick-lift: 0.2
+  kick-lift-sprint: 0.35
