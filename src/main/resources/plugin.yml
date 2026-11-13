@@ -7,7 +7,7 @@ api-version: '1.20'
 commands:
   headball:
     description: Spawn or remove football balls
-    usage: /headball <spawn|remove>
+    usage: /headball <spawn|remove|reload>
     permission: headball.use
 
 permissions:

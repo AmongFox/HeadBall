@@ -2,6 +2,9 @@ package com.afox.headball;
 
 import com.destroystokyo.paper.profile.PlayerProfile;
 import com.destroystokyo.paper.profile.ProfileProperty;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -9,11 +12,16 @@ import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.Levelled;
 import org.bukkit.entity.Interaction;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
@@ -30,18 +38,31 @@ public class Ball {
     private static final double WALL_BOUNCE = 0.7;
     private static final double ROLL_FRICTION = 0.96;
     private static final double AIR_DRAG = 0.995;
-    private static final double MAX_SPEED = 2.0;
+    protected static final double MAX_SPEED = 2.0;
     private static final double STOP = 0.02;
     private static final double RADIUS = 0.25;
 
-    private final Settings settings;
+    private static final double WATER_GRAVITY = 0.01;
+    private static final double WATER_BUOYANCY = 0.05;
+    private static final double WATER_MAX_RISE = 0.15;
+    private static final double WATER_FLOW_PUSH = 0.03;
+    private static final double WATER_DRAG = 0.98;
+    private static final BlockFace[] HORIZONTAL = {
+            BlockFace.NORTH, BlockFace.SOUTH, BlockFace.EAST, BlockFace.WEST
+    };
+
+    protected final Settings settings;
     private final ItemDisplay display;
     private final Interaction hitbox;
-    private Location location;
-    private Vector velocity = new Vector(0, 0, 0);
-    private boolean onGround;
+    protected Location location;
+    protected Vector velocity = new Vector(0, 0, 0);
+    protected boolean onGround;
 
     public Ball(Location location, Player owner, Settings settings) {
+        this(location, owner, settings, 0.6f, 0.6f);
+    }
+
+    protected Ball(Location location, Player owner, Settings settings, float hitboxWidth, float hitboxHeight) {
         this.settings = settings;
         location = location.clone();
         location.setYaw(0f);
@@ -50,8 +71,8 @@ public class Ball {
         World world = location.getWorld();
 
         this.hitbox = world.spawn(location, Interaction.class, entity -> {
-            entity.setInteractionWidth(0.6f);
-            entity.setInteractionHeight(0.6f);
+            entity.setInteractionWidth(hitboxWidth);
+            entity.setInteractionHeight(hitboxHeight);
             entity.setResponsive(true);
             entity.addScoreboardTag("headball");
         });
@@ -100,6 +121,29 @@ public class Ball {
         return item;
     }
 
+    public static ItemStack createHeldItem(HeadBall plugin, Settings settings, String type, String name) {
+        ItemStack item = createHeadItem(settings, null);
+        ItemMeta meta = item.getItemMeta();
+        if (meta != null) {
+            meta.displayName(Component.text(name, NamedTextColor.WHITE)
+                    .decoration(TextDecoration.ITALIC, false));
+            meta.getPersistentDataContainer().set(plugin.getHeldBallKey(), PersistentDataType.STRING, type);
+            item.setItemMeta(meta);
+        }
+        return item;
+    }
+
+    public static String heldBallType(HeadBall plugin, ItemStack item) {
+        if (item == null || item.getType() != Material.PLAYER_HEAD) {
+            return null;
+        }
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) {
+            return null;
+        }
+        return meta.getPersistentDataContainer().get(plugin.getHeldBallKey(), PersistentDataType.STRING);
+    }
+
     public void kick(Player player) {
         Vector direction = player.getEyeLocation().getDirection().normalize();
         boolean sprint = player.isSprinting();
@@ -126,7 +170,23 @@ public class Ball {
 
     public void tick() {
         Vector v = velocity.clone();
-        v.setY(v.getY() - GRAVITY);
+
+        Block water = waterAt();
+        boolean inWater = water != null;
+        v.setY(v.getY() - (inWater ? WATER_GRAVITY : GRAVITY));
+
+        if (inWater) {
+            v.setY(v.getY() + WATER_BUOYANCY);
+            if (v.getY() > WATER_MAX_RISE) {
+                v.setY(WATER_MAX_RISE);
+            }
+            Vector flow = waterFlow(water);
+            v.setX(v.getX() + flow.getX() * WATER_FLOW_PUSH);
+            v.setZ(v.getZ() + flow.getZ() * WATER_FLOW_PUSH);
+            v.setX(v.getX() * WATER_DRAG);
+            v.setZ(v.getZ() * WATER_DRAG);
+        }
+
         if (v.length() > MAX_SPEED) {
             v = v.normalize().multiply(MAX_SPEED);
         }
@@ -214,6 +274,45 @@ public class Ball {
             }
         }
         return false;
+    }
+
+    private Block waterAt() {
+        Block block = location.getBlock();
+        if (block.getType() == Material.WATER) {
+            return block;
+        }
+        Block below = location.clone().subtract(0, 0.4, 0).getBlock();
+        if (below.getType() == Material.WATER) {
+            return below;
+        }
+        return null;
+    }
+
+    private Vector waterFlow(Block block) {
+        int level = waterLevel(block);
+        Vector flow = new Vector();
+        for (BlockFace face : HORIZONTAL) {
+            int neighborLevel = waterLevel(block.getRelative(face));
+            if (neighborLevel > level) {
+                flow.add(new Vector(face.getModX(), 0, face.getModZ())
+                        .multiply(neighborLevel - level));
+            }
+        }
+        if (flow.lengthSquared() > 0) {
+            flow.normalize();
+        }
+        return flow;
+    }
+
+    private int waterLevel(Block block) {
+        if (block.getType() != Material.WATER) {
+            return -1;
+        }
+        BlockData data = block.getBlockData();
+        if (data instanceof Levelled levelled) {
+            return levelled.getLevel();
+        }
+        return 0;
     }
 
     private void updateEntities() {

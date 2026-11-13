@@ -1,24 +1,30 @@
 package com.afox.headball;
 
+import org.bukkit.NamespacedKey;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class HeadBall extends JavaPlugin {
 
     private BallManager balls;
     private Settings settings;
+    private Settings volleyballSettings;
+    private NamespacedKey heldBallKey;
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
-        settings = new Settings(this);
+        heldBallKey = new NamespacedKey(this, "held-ball");
+        loadSettings();
 
         balls = new BallManager(this);
         balls.start();
 
-        getServer().getPluginManager().registerEvents(new KickListener(balls), this);
+        getServer().getPluginManager().registerEvents(new KickListener(this, balls), this);
 
         if (getCommand("headball") != null) {
-            getCommand("headball").setExecutor(new HeadBallCommand(this, balls));
+            HeadBallCommand executor = new HeadBallCommand(this, balls);
+            getCommand("headball").setExecutor(executor);
+            getCommand("headball").setTabCompleter(executor);
         }
     }
 
@@ -29,12 +35,25 @@ public final class HeadBall extends JavaPlugin {
         }
     }
 
+    private void loadSettings() {
+        settings = new Settings(this);
+        volleyballSettings = new Settings(this, "volleyball");
+    }
+
     public Settings getSettings() {
         return settings;
     }
 
+    public Settings getVolleyballSettings() {
+        return volleyballSettings;
+    }
+
+    public NamespacedKey getHeldBallKey() {
+        return heldBallKey;
+    }
+
     public void reloadSettings() {
         reloadConfig();
-        settings = new Settings(this);
+        loadSettings();
     }
 }

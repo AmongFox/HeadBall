@@ -2,7 +2,9 @@ package com.afox.headball;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -43,6 +45,17 @@ public class BallManager {
         return ball;
     }
 
+    public VolleyBall spawnVolleyball(Location location, Player owner) {
+        VolleyBall ball = new VolleyBall(location, owner, plugin.getVolleyballSettings());
+        balls.add(ball);
+        return ball;
+    }
+
+    public void remove(Ball ball) {
+        ball.remove();
+        balls.remove(ball);
+    }
+
     public Ball byHitbox(Entity entity) {
         for (Ball ball : balls) {
             if (ball.getHitbox().getUniqueId().equals(entity.getUniqueId())) {
@@ -57,6 +70,23 @@ public class BallManager {
             ball.remove();
         }
         balls.clear();
+    }
+
+    public int removeAll() {
+        int removed = 0;
+        for (World world : Bukkit.getWorlds()) {
+            for (Entity entity : world.getEntities()) {
+                if (!entity.getScoreboardTags().contains("headball")) {
+                    continue;
+                }
+                if (entity instanceof ItemDisplay) {
+                    removed++;
+                }
+                entity.remove();
+            }
+        }
+        balls.clear();
+        return removed;
     }
 
     public void stop() {
