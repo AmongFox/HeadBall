@@ -24,35 +24,62 @@ public class HeadBallCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String[] args) {
-        if (!(sender instanceof Player player)) {
-            sender.sendMessage("Команда только для игроков.");
-            return true;
-        }
-
         if (args.length == 0) {
-            showHelp(player);
+            if (!sender.hasPermission("headball.use")) {
+                deny(sender);
+                return true;
+            }
+            showHelp(sender);
             return true;
         }
 
-        switch (args[0].toLowerCase()) {
-            case "spawn" -> spawn(player, args);
+        switch (args[0].toLowerCase(Locale.ROOT)) {
+            case "spawn" -> {
+                if (!sender.hasPermission("headball.use")) {
+                    deny(sender);
+                    return true;
+                }
+                if (!(sender instanceof Player player)) {
+                    sender.sendMessage("§cСоздавать мячи может только игрок.");
+                    return true;
+                }
+                spawn(player, args);
+            }
             case "remove" -> {
+                if (!sender.hasPermission("headball.remove")) {
+                    deny(sender);
+                    return true;
+                }
                 if (args.length > 1 && args[1].equalsIgnoreCase("all")) {
                     int removed = balls.removeAll();
-                    player.sendMessage("§aУдалено мячей во всех мирах: " + removed);
+                    sender.sendMessage("§aУдалено мячей во всех мирах: " + removed);
                 } else {
                     int removed = balls.count();
                     balls.clear();
-                    player.sendMessage("§aУдалено мячей: " + removed);
+                    sender.sendMessage("§aУдалено мячей: " + removed);
                 }
             }
             case "reload" -> {
+                if (!sender.hasPermission("headball.reload")) {
+                    deny(sender);
+                    return true;
+                }
                 plugin.reloadSettings();
-                player.sendMessage("§aКонфиг перезагружен. Пересоздай мяч.");
+                sender.sendMessage("§aКонфиг перезагружен. Пересоздай мяч.");
             }
-            default -> showHelp(player);
+            default -> {
+                if (!sender.hasPermission("headball.use")) {
+                    deny(sender);
+                    return true;
+                }
+                showHelp(sender);
+            }
         }
         return true;
+    }
+
+    private void deny(CommandSender sender) {
+        sender.sendMessage("§cНедостаточно прав.");
     }
 
     private void spawn(Player player, String[] args) {
@@ -62,15 +89,21 @@ public class HeadBallCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
-        String type = args[1].toLowerCase();
+        String type = args[1].toLowerCase(Locale.ROOT);
         Location location = spawnLocation(player);
         switch (type) {
             case "ball" -> {
-                balls.spawn(location, player);
+                if (balls.spawn(location, player) == null) {
+                    limitReached(player);
+                    return;
+                }
                 player.sendMessage("§aФутбольный мяч создан.");
             }
             case "volleyball" -> {
-                balls.spawnVolleyball(location, player);
+                if (balls.spawnVolleyball(location, player) == null) {
+                    limitReached(player);
+                    return;
+                }
                 player.sendMessage("§aВолейбольный мяч создан.");
             }
             default -> {
@@ -80,33 +113,49 @@ public class HeadBallCommand implements CommandExecutor, TabCompleter {
         }
     }
 
+    private void limitReached(Player player) {
+        player.sendMessage("§cДостигнут лимит мячей: §f" + balls.maxBalls());
+    }
+
     private Location spawnLocation(Player player) {
         return player.getLocation()
                 .add(player.getLocation().getDirection().setY(0).normalize().multiply(1.5))
                 .add(0, 0.5, 0);
     }
 
-    private void showHelp(Player player) {
-        player.sendMessage("§e§lHeadBall §7— команды:");
-        player.sendMessage("§e/headball spawn <ball|volleyball> §7— создать мяч");
-        player.sendMessage("§e/headball remove [all] §7— удалить мячи");
-        player.sendMessage("§e/headball reload §7— перезагрузить конфиг");
+    private void showHelp(CommandSender sender) {
+        sender.sendMessage("§e§lHeadBall §7— команды:");
+        sender.sendMessage("§e/headball spawn <ball|volleyball> §7— создать мяч");
+        sender.sendMessage("§e/headball remove [all] §7— удалить мячи");
+        sender.sendMessage("§e/headball reload §7— перезагрузить конфиг");
     }
 
     @Override
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, String[] args) {
         List<String> suggestions = new ArrayList<>();
         if (args.length == 1) {
-            suggestions.add("spawn");
-            suggestions.add("remove");
-            suggestions.add("reload");
+            if (sender.hasPermission("headball.use")) {
+                suggestions.add("spawn");
+            }
+            if (sender.hasPermission("headball.remove")) {
+                suggestions.add("remove");
+            }
+            if (sender.hasPermission("headball.reload")) {
+                suggestions.add("reload");
+            }
         } else if (args.length == 2) {
             switch (args[0].toLowerCase(Locale.ROOT)) {
                 case "spawn" -> {
-                    suggestions.add("ball");
-                    suggestions.add("volleyball");
+                    if (sender.hasPermission("headball.use")) {
+                        suggestions.add("ball");
+                        suggestions.add("volleyball");
+                    }
                 }
-                case "remove" -> suggestions.add("all");
+                case "remove" -> {
+                    if (sender.hasPermission("headball.remove")) {
+                        suggestions.add("all");
+                    }
+                }
                 default -> {
                 }
             }

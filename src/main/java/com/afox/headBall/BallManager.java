@@ -18,6 +18,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public class BallManager {
 
@@ -25,11 +26,16 @@ public class BallManager {
 
     private final HeadBall plugin;
     private final List<Ball> balls = new ArrayList<>();
-    private final Map<Ball, int[]> chunks = new HashMap<>();
+    private final Map<Ball, ChunkKey> chunks = new HashMap<>();
+    private final Map<ChunkKey, Integer> chunkRefs = new HashMap<>();
+    private final Map<UUID, Ball> hitboxes = new HashMap<>();
     private final Map<Ball, Integer> deadTicks = new HashMap<>();
     private final File file;
     private BukkitTask task;
     private int saveTicks;
+
+    private record ChunkKey(UUID worldId, int x, int z) {
+    }
 
     public BallManager(HeadBall plugin) {
         this.plugin = plugin;
@@ -53,6 +59,7 @@ public class BallManager {
                 }
                 plugin.getLogger().warning("[HeadBall] Removing dead ball at " + ball.getLocation());
                 releaseChunk(ball);
+                hitboxes.remove(ball.getHitboxId());
                 ball.remove();
                 deadTicks.remove(ball);
                 iterator.remove();
@@ -70,6 +77,9 @@ public class BallManager {
     }
 
     public Ball spawn(Location location, Player owner) {
+        if (isFull()) {
+            return null;
+        }
         loadChunk(location);
         Ball ball = new Ball(location, owner, plugin.getSettings());
         register(ball);
@@ -78,6 +88,9 @@ public class BallManager {
     }
 
     public VolleyBall spawnVolleyball(Location location, Player owner) {
+        if (isFull()) {
+            return null;
+        }
         loadChunk(location);
         VolleyBall ball = new VolleyBall(location, owner, plugin.getVolleyballSettings());
         register(ball);
@@ -87,23 +100,20 @@ public class BallManager {
 
     public void remove(Ball ball) {
         releaseChunk(ball);
+        hitboxes.remove(ball.getHitboxId());
         ball.remove();
         balls.remove(ball);
         save();
     }
 
     public Ball byHitbox(Entity entity) {
-        for (Ball ball : balls) {
-            if (ball.getHitbox().getUniqueId().equals(entity.getUniqueId())) {
-                return ball;
-            }
-        }
-        return null;
+        return hitboxes.get(entity.getUniqueId());
     }
 
     public void clear() {
         for (Ball ball : balls) {
             releaseChunk(ball);
+            hitboxes.remove(ball.getHitboxId());
             ball.remove();
         }
         balls.clear();
@@ -114,6 +124,7 @@ public class BallManager {
         for (Ball ball : balls) {
             releaseChunk(ball);
         }
+        hitboxes.clear();
         int removed = removeTaggedEntities();
         balls.clear();
         save();
@@ -132,10 +143,19 @@ public class BallManager {
             ball.remove();
         }
         balls.clear();
+        hitboxes.clear();
     }
 
     public int count() {
         return balls.size();
+    }
+
+    public int maxBalls() {
+        return Math.max(1, plugin.getConfig().getInt("max-balls", 50));
+    }
+
+    public boolean isFull() {
+        return balls.size() >= maxBalls();
     }
 
     public void save() {
@@ -223,6 +243,7 @@ public class BallManager {
 
     private void register(Ball ball) {
         balls.add(ball);
+        hitboxes.put(ball.getHitboxId(), ball);
         updateChunk(ball);
     }
 
@@ -241,28 +262,49 @@ public class BallManager {
             return;
         }
 
-        int chunkX = location.getBlockX() >> 4;
-        int chunkZ = location.getBlockZ() >> 4;
-        int[] current = chunks.get(ball);
-        if (current != null && current[0] == chunkX && current[1] == chunkZ) {
+        ChunkKey key = new ChunkKey(world.getUID(), location.getBlockX() >> 4, location.getBlockZ() >> 4);
+        ChunkKey current = chunks.get(ball);
+        if (key.equals(current)) {
             return;
         }
 
         if (current != null) {
-            world.removePluginChunkTicket(current[0], current[1], plugin);
+            releaseChunkKey(current);
         }
-        world.addPluginChunkTicket(chunkX, chunkZ, plugin);
-        chunks.put(ball, new int[]{chunkX, chunkZ});
+        acquireChunkKey(key);
+        chunks.put(ball, key);
+    }
+
+    private void acquireChunkKey(ChunkKey key) {
+        int count = chunkRefs.merge(key, 1, Integer::sum);
+        if (count == 1) {
+            World world = Bukkit.getWorld(key.worldId());
+            if (world != null) {
+                world.addPluginChunkTicket(key.x(), key.z(), plugin);
+            }
+        }
     }
 
     private void releaseChunk(Ball ball) {
-        int[] chunk = chunks.remove(ball);
-        if (chunk == null) {
+        ChunkKey key = chunks.remove(ball);
+        if (key != null) {
+            releaseChunkKey(key);
+        }
+    }
+
+    private void releaseChunkKey(ChunkKey key) {
+        Integer count = chunkRefs.get(key);
+        if (count == null) {
             return;
         }
-        World world = ball.getLocation().getWorld();
-        if (world != null) {
-            world.removePluginChunkTicket(chunk[0], chunk[1], plugin);
+        if (count <= 1) {
+            chunkRefs.remove(key);
+            World world = Bukkit.getWorld(key.worldId());
+            if (world != null) {
+                world.removePluginChunkTicket(key.x(), key.z(), plugin);
+            }
+        } else {
+            chunkRefs.put(key, count - 1);
         }
     }
 

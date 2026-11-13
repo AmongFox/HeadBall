@@ -63,9 +63,13 @@ public class KickListener implements Listener {
             return;
         }
 
-        event.setCancelled(true);
         Player player = event.getPlayer();
-        consumeOne(player);
+        if (balls.isFull()) {
+            limitReached(player);
+            return;
+        }
+
+        event.setCancelled(true);
 
         if (VOLLEYBALL.equals(type)) {
             boolean strong = !player.isOnGround();
@@ -73,10 +77,23 @@ public class KickListener implements Listener {
                     player.getEyeLocation().add(player.getEyeLocation().getDirection().normalize().multiply(1.2)),
                     player
             );
+            if (ball == null) {
+                limitReached(player);
+                return;
+            }
+            consumeOne(player);
             ball.throwBall(player, strong);
         } else {
-            balls.spawn(player.getLocation().add(0, 0.3, 0), player);
+            if (balls.spawn(player.getLocation().add(0, 0.3, 0), player) == null) {
+                limitReached(player);
+                return;
+            }
+            consumeOne(player);
         }
+    }
+
+    private void limitReached(Player player) {
+        player.sendMessage("§cДостигнут лимит мячей: §f" + balls.maxBalls());
     }
 
     private void pickup(Player player, Ball ball) {

@@ -55,9 +55,15 @@ public class Ball {
     protected final String texture;
     private final ItemDisplay display;
     private final Interaction hitbox;
+    private final UUID hitboxId;
     protected Location location;
     protected Vector velocity = new Vector(0, 0, 0);
     protected boolean onGround;
+
+    private boolean rendered;
+    private double lastRenderX;
+    private double lastRenderY;
+    private double lastRenderZ;
 
     public Ball(Location location, Player owner, Settings settings) {
         this(location, owner, settings, (String) null);
@@ -86,6 +92,7 @@ public class Ball {
             entity.setResponsive(true);
             entity.addScoreboardTag("headball");
         });
+        this.hitboxId = hitbox.getUniqueId();
 
         this.display = world.spawn(location, ItemDisplay.class, entity -> {
             entity.setItemStack(createHeadItem(this.texture, owner));
@@ -113,7 +120,6 @@ public class Ball {
         if (texture != null && !texture.isBlank()) {
             profile = Bukkit.createProfile(UUID.randomUUID());
             profile.getProperties().add(new ProfileProperty("textures", texture));
-            Bukkit.getLogger().info("[HeadBall] applying skin, payload length=" + texture.length());
         } else if (owner != null) {
             profile = owner.getPlayerProfile();
         } else {
@@ -122,12 +128,6 @@ public class Ball {
 
         meta.setPlayerProfile(profile);
         item.setItemMeta(meta);
-
-        SkullMeta check = (SkullMeta) item.getItemMeta();
-        if (check != null && check.getPlayerProfile() != null) {
-            Bukkit.getLogger().info("[HeadBall] readback properties=" + check.getPlayerProfile().getProperties());
-        }
-
         return item;
     }
 
@@ -329,8 +329,20 @@ public class Ball {
         if (!display.isValid() || !hitbox.isValid()) {
             return;
         }
+
+        double dx = location.getX() - lastRenderX;
+        double dy = location.getY() - lastRenderY;
+        double dz = location.getZ() - lastRenderZ;
+        if (rendered && velocity.lengthSquared() < 1.0E-8 && dx * dx + dy * dy + dz * dz < 1.0E-8) {
+            return;
+        }
+
         display.teleport(location);
         hitbox.teleport(location.clone().add(0, -0.3, 0));
+        rendered = true;
+        lastRenderX = location.getX();
+        lastRenderY = location.getY();
+        lastRenderZ = location.getZ();
     }
 
     public void remove() {
@@ -344,6 +356,10 @@ public class Ball {
 
     public Interaction getHitbox() {
         return hitbox;
+    }
+
+    public UUID getHitboxId() {
+        return hitboxId;
     }
 
     public Location getLocation() {
