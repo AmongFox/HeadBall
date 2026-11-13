@@ -5,6 +5,8 @@ import com.destroystokyo.paper.profile.ProfileProperty;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Particle;
+import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Interaction;
@@ -19,6 +21,7 @@ import org.joml.AxisAngle4f;
 import org.joml.Vector3f;
 
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class Ball {
 
@@ -102,6 +105,15 @@ public class Ball {
         boolean sprint = player.isSprinting();
         double speed = sprint ? settings.kickSpeedSprint : settings.kickSpeed;
         double lift = sprint ? settings.kickLiftSprint : settings.kickLift;
+
+        World world = location.getWorld();
+        if (sprint) {
+            world.spawnParticle(Particle.SWEEP_ATTACK, location, 1, 0, 0, 0, 0);
+        } else {
+            world.spawnParticle(Particle.CRIT, location, 6, 0.6, 0.6, 0.6, 0.5);
+        }
+        float pitch = 0.8f + ThreadLocalRandom.current().nextFloat() * 0.4f;
+        world.playSound(location, Sound.ENTITY_PLAYER_SMALL_FALL, 1.0f, pitch);
 
         Vector kick = direction.multiply(speed);
         kick.setY(kick.getY() + lift);
