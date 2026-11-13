@@ -60,12 +60,20 @@ public class Ball {
     protected boolean onGround;
 
     public Ball(Location location, Player owner, Settings settings) {
-        this(location, owner, settings, 0.6f, 0.6f);
+        this(location, owner, settings, (String) null);
+    }
+
+    public Ball(Location location, Player owner, Settings settings, String texture) {
+        this(location, owner, settings, texture, 0.6f, 0.6f);
     }
 
     protected Ball(Location location, Player owner, Settings settings, float hitboxWidth, float hitboxHeight) {
+        this(location, owner, settings, null, hitboxWidth, hitboxHeight);
+    }
+
+    protected Ball(Location location, Player owner, Settings settings, String texture, float hitboxWidth, float hitboxHeight) {
         this.settings = settings;
-        this.texture = settings.randomTexture();
+        this.texture = (texture == null || texture.isBlank()) ? settings.randomTexture() : texture;
         location = location.clone();
         location.setYaw(0f);
         location.setPitch(0f);
@@ -80,7 +88,7 @@ public class Ball {
         });
 
         this.display = world.spawn(location, ItemDisplay.class, entity -> {
-            entity.setItemStack(createHeadItem(texture, owner));
+            entity.setItemStack(createHeadItem(this.texture, owner));
             entity.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
             entity.setTransformation(new Transformation(
                     new Vector3f(0f, settings.yOffset, 0f),
@@ -336,6 +344,18 @@ public class Ball {
 
     public Interaction getHitbox() {
         return hitbox;
+    }
+
+    public Location getLocation() {
+        return location.clone();
+    }
+
+    public Vector getVelocity() {
+        return velocity.clone();
+    }
+
+    public void setVelocity(Vector velocity) {
+        this.velocity = velocity.clone();
     }
 
     public String getTexture() {

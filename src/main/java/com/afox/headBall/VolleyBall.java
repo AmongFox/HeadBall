@@ -15,6 +15,10 @@ public class VolleyBall extends Ball {
         super(location, owner, settings, 1.2f, 1.2f);
     }
 
+    public VolleyBall(Location location, Player owner, Settings settings, String texture) {
+        super(location, owner, settings, texture, 1.2f, 1.2f);
+    }
+
     @Override
     public void kick(Player player) {
         Vector direction = player.getEyeLocation().getDirection().normalize();
