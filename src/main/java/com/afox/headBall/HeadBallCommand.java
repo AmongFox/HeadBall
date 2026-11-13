@@ -58,7 +58,7 @@ public class HeadBallCommand implements CommandExecutor, TabCompleter {
     private void spawn(Player player, String[] args) {
         if (args.length < 2) {
             player.sendMessage("§eДоступные мячи: §f[ball | volleyball]");
-            player.sendMessage("§7Использование: §e/headball spawn <ball|volleyball>");
+            player.sendMessage("§7Использование: §e/headball spawn <ball | volleyball>");
             return;
         }
 

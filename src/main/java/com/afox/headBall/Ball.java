@@ -52,6 +52,7 @@ public class Ball {
     };
 
     protected final Settings settings;
+    protected final String texture;
     private final ItemDisplay display;
     private final Interaction hitbox;
     protected Location location;
@@ -64,6 +65,7 @@ public class Ball {
 
     protected Ball(Location location, Player owner, Settings settings, float hitboxWidth, float hitboxHeight) {
         this.settings = settings;
+        this.texture = settings.randomTexture();
         location = location.clone();
         location.setYaw(0f);
         location.setPitch(0f);
@@ -78,7 +80,7 @@ public class Ball {
         });
 
         this.display = world.spawn(location, ItemDisplay.class, entity -> {
-            entity.setItemStack(createHeadItem(settings, owner));
+            entity.setItemStack(createHeadItem(texture, owner));
             entity.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
             entity.setTransformation(new Transformation(
                     new Vector3f(0f, settings.yOffset, 0f),
@@ -92,7 +94,7 @@ public class Ball {
         updateEntities();
     }
 
-    public static ItemStack createHeadItem(Settings settings, Player owner) {
+    public static ItemStack createHeadItem(String texture, Player owner) {
         ItemStack item = new ItemStack(Material.PLAYER_HEAD);
         SkullMeta meta = (SkullMeta) item.getItemMeta();
         if (meta == null) {
@@ -100,10 +102,10 @@ public class Ball {
         }
 
         PlayerProfile profile;
-        if (settings.texture != null && !settings.texture.isBlank()) {
+        if (texture != null && !texture.isBlank()) {
             profile = Bukkit.createProfile(UUID.randomUUID());
-            profile.getProperties().add(new ProfileProperty("textures", settings.texture));
-            Bukkit.getLogger().info("[HeadBall] applying skin, payload length=" + settings.texture.length());
+            profile.getProperties().add(new ProfileProperty("textures", texture));
+            Bukkit.getLogger().info("[HeadBall] applying skin, payload length=" + texture.length());
         } else if (owner != null) {
             profile = owner.getPlayerProfile();
         } else {
@@ -121,8 +123,8 @@ public class Ball {
         return item;
     }
 
-    public static ItemStack createHeldItem(HeadBall plugin, Settings settings, String type, String name) {
-        ItemStack item = createHeadItem(settings, null);
+    public static ItemStack createHeldItem(HeadBall plugin, String texture, String type, String name) {
+        ItemStack item = createHeadItem(texture, null);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
             meta.displayName(Component.text(name, NamedTextColor.WHITE)
@@ -334,5 +336,9 @@ public class Ball {
 
     public Interaction getHitbox() {
         return hitbox;
+    }
+
+    public String getTexture() {
+        return texture;
     }
 }

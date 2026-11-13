@@ -2,9 +2,13 @@ package com.afox.headball;
 
 import org.bukkit.configuration.file.FileConfiguration;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
+
 public class Settings {
 
-    public final String texture;
+    public final List<String> textures;
     public final float scale;
     public final float yOffset;
     public final float pitch;
@@ -26,7 +30,7 @@ public class Settings {
 
     public Settings(HeadBall plugin, String section) {
         FileConfiguration config = plugin.getConfig();
-        this.texture = config.getString(section + ".texture", "");
+        this.textures = loadTextures(config, section + ".texture");
         this.scale = (float) config.getDouble(section + ".scale", 1.1);
         this.yOffset = (float) config.getDouble(section + ".y-offset", 0.25);
         this.pitch = (float) config.getDouble(section + ".pitch", 0.0);
@@ -41,5 +45,29 @@ public class Settings {
         this.throwSpeedJump = config.getDouble(section + ".throw-speed-jump", 1.2);
         this.throwLift = config.getDouble(section + ".throw-lift", 0.25);
         this.throwLiftJump = config.getDouble(section + ".throw-lift-jump", 0.4);
+    }
+
+    public String randomTexture() {
+        if (textures.isEmpty()) {
+            return "";
+        }
+        return textures.get(ThreadLocalRandom.current().nextInt(textures.size()));
+    }
+
+    private static List<String> loadTextures(FileConfiguration config, String path) {
+        List<String> result = new ArrayList<>();
+        if (config.isList(path)) {
+            for (String texture : config.getStringList(path)) {
+                if (texture != null && !texture.isBlank()) {
+                    result.add(texture);
+                }
+            }
+        } else {
+            String texture = config.getString(path, "");
+            if (!texture.isBlank()) {
+                result.add(texture);
+            }
+        }
+        return List.copyOf(result);
     }
 }

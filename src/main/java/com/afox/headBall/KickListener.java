@@ -82,11 +82,11 @@ public class KickListener implements Listener {
     private void pickup(Player player, Ball ball) {
         boolean volleyball = ball instanceof VolleyBall;
         String type = volleyball ? VOLLEYBALL : FOOTBALL;
-        Settings settings = volleyball ? plugin.getVolleyballSettings() : plugin.getSettings();
         String name = volleyball ? "Волейбольный мяч" : "Футбольный мяч";
+        String texture = ball.getTexture();
 
         balls.remove(ball);
-        giveHeldItem(player, Ball.createHeldItem(plugin, settings, type, name));
+        giveHeldItem(player, Ball.createHeldItem(plugin, texture, type, name));
         player.playSound(player.getLocation(), Sound.ENTITY_ITEM_PICKUP, 1.0f, 1.0f);
     }
 
