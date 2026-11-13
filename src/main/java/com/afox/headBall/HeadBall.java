@@ -3,6 +3,8 @@ package com.afox.headball;
 import org.bukkit.NamespacedKey;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.Objects;
+
 public final class HeadBall extends JavaPlugin {
 
     private BallManager balls;
@@ -23,8 +25,8 @@ public final class HeadBall extends JavaPlugin {
 
         if (getCommand("headball") != null) {
             HeadBallCommand executor = new HeadBallCommand(this, balls);
-            getCommand("headball").setExecutor(executor);
-            getCommand("headball").setTabCompleter(executor);
+            Objects.requireNonNull(getCommand("headball")).setExecutor(executor);
+            Objects.requireNonNull(getCommand("headball")).setTabCompleter(executor);
         }
     }
 

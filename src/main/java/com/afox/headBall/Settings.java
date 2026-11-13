@@ -30,16 +30,16 @@ public class Settings {
         this.scale = (float) config.getDouble(section + ".scale", 1.1);
         this.yOffset = (float) config.getDouble(section + ".y-offset", 0.25);
         this.pitch = (float) config.getDouble(section + ".pitch", 0.0);
-        this.kickSpeed = config.getDouble(section + ".kick-speed", 0.8);
-        this.kickSpeedSprint = config.getDouble(section + ".kick-speed-sprint", 1.5);
+        this.kickSpeed = config.getDouble(section + ".kick-speed", 0.6);
+        this.kickSpeedSprint = config.getDouble(section + ".kick-speed-sprint", 1.2);
         this.kickLift = config.getDouble(section + ".kick-lift", 0.2);
         this.kickLiftSprint = config.getDouble(section + ".kick-lift-sprint", 0.35);
         this.kickSpeedJump = config.getDouble(section + ".kick-speed-jump", kickSpeedSprint);
         this.kickLiftJump = config.getDouble(section + ".kick-lift-jump", kickLiftSprint);
-        this.fallSpeed = config.getDouble(section + ".fall-speed", 0.5);
-        this.throwSpeed = config.getDouble(section + ".throw-speed", 1.2);
-        this.throwSpeedJump = config.getDouble(section + ".throw-speed-jump", 2.0);
-        this.throwLift = config.getDouble(section + ".throw-lift", 0.15);
-        this.throwLiftJump = config.getDouble(section + ".throw-lift-jump", 0.3);
+        this.fallSpeed = config.getDouble(section + ".fall-speed", 0.3);
+        this.throwSpeed = config.getDouble(section + ".throw-speed", 0.8);
+        this.throwSpeedJump = config.getDouble(section + ".throw-speed-jump", 1.2);
+        this.throwLift = config.getDouble(section + ".throw-lift", 0.25);
+        this.throwLiftJump = config.getDouble(section + ".throw-lift-jump", 0.4);
     }
 }
