@@ -22,7 +22,7 @@ public class VolleyBall extends Ball {
     @Override
     public void kick(Player player) {
         Vector direction = player.getEyeLocation().getDirection().normalize();
-        boolean jumping = !player.isOnGround();
+        boolean jumping = Ball.isAirborne(player);
         double speed = jumping ? settings.kickSpeedJump : settings.kickSpeed;
         double lift = jumping ? settings.kickLiftJump : settings.kickLift;
 

@@ -72,7 +72,7 @@ public class KickListener implements Listener {
         event.setCancelled(true);
 
         if (VOLLEYBALL.equals(type)) {
-            boolean strong = !player.isOnGround();
+            boolean strong = Ball.isAirborne(player);
             VolleyBall ball = balls.spawnVolleyball(
                     player.getEyeLocation().add(player.getEyeLocation().getDirection().normalize().multiply(1.2)),
                     player
@@ -95,7 +95,7 @@ public class KickListener implements Listener {
     private void pickup(Player player, Ball ball) {
         boolean volleyball = ball instanceof VolleyBall;
         String type = volleyball ? VOLLEYBALL : FOOTBALL;
-        String name = volleyball ? "Волейбольный мяч" : "Футбольный мяч";
+        String name = plugin.getMessages().plain(volleyball ? "volleyball-name" : "football-name");
         String texture = ball.getTexture();
 
         balls.remove(ball);

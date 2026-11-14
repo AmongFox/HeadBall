@@ -61,6 +61,7 @@ public class Ball {
     protected Vector velocity = new Vector(0, 0, 0);
     protected boolean onGround;
 
+    private boolean removed;
     private boolean rendered;
     private double lastRenderX;
     private double lastRenderY;
@@ -154,6 +155,10 @@ public class Ball {
             return null;
         }
         return meta.getPersistentDataContainer().get(plugin.getHeldBallKey(), PersistentDataType.STRING);
+    }
+
+    public static boolean isAirborne(Player player) {
+        return player.getVelocity().getY() > 0.0 || player.getFallDistance() > 0.0f;
     }
 
     public void kick(Player player) {
@@ -348,12 +353,17 @@ public class Ball {
     }
 
     public void remove() {
+        removed = true;
         display.remove();
         hitbox.remove();
     }
 
+    public boolean isRemoved() {
+        return removed;
+    }
+
     public boolean isAlive() {
-        return display.isValid() && hitbox.isValid();
+        return !removed && display.isValid() && hitbox.isValid();
     }
 
     public UUID getHitboxId() {

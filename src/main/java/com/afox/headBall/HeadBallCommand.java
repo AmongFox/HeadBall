@@ -40,7 +40,7 @@ public class HeadBallCommand implements CommandExecutor, TabCompleter {
                     return true;
                 }
                 if (!(sender instanceof Player player)) {
-                    sender.sendMessage("§cСоздавать мячи может только игрок.");
+                    plugin.getMessages().send(sender, "spawn-player-only");
                     return true;
                 }
                 spawn(player, args);
@@ -52,11 +52,11 @@ public class HeadBallCommand implements CommandExecutor, TabCompleter {
                 }
                 if (args.length > 1 && args[1].equalsIgnoreCase("all")) {
                     int removed = balls.removeAll();
-                    sender.sendMessage("§aУдалено мячей во всех мирах: " + removed);
+                    plugin.getMessages().send(sender, "removed-all", "count", removed);
                 } else {
                     int removed = balls.count();
                     balls.clear();
-                    sender.sendMessage("§aУдалено мячей: " + removed);
+                    plugin.getMessages().send(sender, "removed", "count", removed);
                 }
             }
             case "reload" -> {
@@ -65,7 +65,7 @@ public class HeadBallCommand implements CommandExecutor, TabCompleter {
                     return true;
                 }
                 plugin.reloadSettings();
-                sender.sendMessage("§aКонфиг перезагружен. Пересоздай мяч.");
+                plugin.getMessages().send(sender, "reloaded");
             }
             default -> {
                 if (!sender.hasPermission("headball.use")) {
@@ -79,13 +79,13 @@ public class HeadBallCommand implements CommandExecutor, TabCompleter {
     }
 
     private void deny(CommandSender sender) {
-        sender.sendMessage("§cНедостаточно прав.");
+        plugin.getMessages().send(sender, "no-permission");
     }
 
     private void spawn(Player player, String[] args) {
         if (args.length < 2) {
-            player.sendMessage("§eДоступные мячи: §f[ball | volleyball]");
-            player.sendMessage("§7Использование: §e/headball spawn <ball | volleyball>");
+            plugin.getMessages().send(player, "available-balls");
+            plugin.getMessages().send(player, "spawn-usage");
             return;
         }
 
@@ -97,18 +97,18 @@ public class HeadBallCommand implements CommandExecutor, TabCompleter {
                     balls.sendLimitMessage(player);
                     return;
                 }
-                player.sendMessage("§aФутбольный мяч создан.");
+                plugin.getMessages().send(player, "spawned-football");
             }
             case "volleyball" -> {
                 if (balls.spawnVolleyball(location, player) == null) {
                     balls.sendLimitMessage(player);
                     return;
                 }
-                player.sendMessage("§aВолейбольный мяч создан.");
+                plugin.getMessages().send(player, "spawned-volleyball");
             }
             default -> {
-                player.sendMessage("§cНеизвестный мяч: §f" + args[1]);
-                player.sendMessage("§eДоступные мячи: §f[ball | volleyball]");
+                plugin.getMessages().send(player, "unknown-ball", "type", args[1]);
+                plugin.getMessages().send(player, "available-balls");
             }
         }
     }
@@ -120,10 +120,10 @@ public class HeadBallCommand implements CommandExecutor, TabCompleter {
     }
 
     private void showHelp(CommandSender sender) {
-        sender.sendMessage("§e§lHeadBall §7— команды:");
-        sender.sendMessage("§e/headball spawn <ball|volleyball> §7— создать мяч");
-        sender.sendMessage("§e/headball remove [all] §7— удалить мячи");
-        sender.sendMessage("§e/headball reload §7— перезагрузить конфиг");
+        plugin.getMessages().send(sender, "help-header");
+        plugin.getMessages().send(sender, "help-spawn");
+        plugin.getMessages().send(sender, "help-remove");
+        plugin.getMessages().send(sender, "help-reload");
     }
 
     @Override

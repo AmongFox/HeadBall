@@ -1,40 +1,66 @@
+# Plugin language: en (English) or ru (Russian).
+# Language files are stored in plugins/HeadBall/lang/.
+language: en
+
+# Global ball limit across all worlds.
 max-balls: 50
+# Maximum number of balls per player.
 max-balls-per-player: 2
+# Enable or disable the global ball limit.
 world-limit-enabled: true
+# Enable or disable the per-player ball limit.
 player-limit-enabled: true
 
-messages:
-  world-limit: "§cДостигнут лимит мячей в мире: §f{limit}"
-  player-limit: "§cДостигнут ваш лимит мячей: §f{limit}"
-
 crafting:
+  # Enable or disable ball crafting.
   enabled: true
 
 ball:
+  # List of Base64 skull textures. A random texture is selected for each new ball.
   texture:
     - "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOGU0YTcwYjdiYmNkN2E4YzMyMmQ1MjI1MjA0OTFhMjdlYTZiODNkNjBlY2Y5NjFkMmI0ZWZiYmY5ZjYwNWQifX19"
+  # Ball model scale.
   scale: 1.1
+  # Vertical offset of the ball model.
   y-offset: 0.25
+  # Tilt of the ball model.
   pitch: 0.0
+  # Kick strength for a normal kick.
   kick-speed: 0.6
+  # Kick strength while sprinting.
   kick-speed-sprint: 1.2
+  # Vertical lift for a normal kick.
   kick-lift: 0.25
+  # Vertical lift while sprinting.
   kick-lift-sprint: 0.40
 
 volleyball:
+  # List of Base64 skull textures. A random texture is selected for each new ball.
   texture:
     - "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMWU2ZGYxYzJiZjViOTE4ZjZjODg3OWFmNGM0ZWNjMWRhYmJlMzcyMjkyODRlMWY4ZjZiY2NkYjFlYTNkMGFjIn19fQ=="
     - "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNWE1YWIwNWVhMjU0YzMyZTNjNDhmM2ZkY2Y5ZmQ5ZDc3ZDNjYmEwNGU2YjVlYzJlNjhiM2NiZGNmYWMzZmQifX19"
     - "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTk0YzgyMDk2ZDQ1YjI1NTI5NDliMjVjOGE4YTAxODZhMWJhYmZlNGY2NjU3MWE0NDI1N2FlZmU4M2U0NTIyIn19fQ=="
+  # Ball model scale.
   scale: 1.1
+  # Vertical offset of the ball model.
   y-offset: 0.25
+  # Tilt of the ball model.
   pitch: 0.0
+  # Kick strength for a normal kick.
   kick-speed: 0.8
+  # Kick strength while jumping.
   kick-speed-jump: 1.2
+  # Vertical lift for a normal kick.
   kick-lift: 0.25
+  # Vertical lift while jumping.
   kick-lift-jump: 0.40
+  # Maximum downward speed while falling.
   fall-speed: 0.3
+  # Throw strength for a normal throw.
   throw-speed: 0.8
+  # Throw strength while jumping.
   throw-speed-jump: 1.2
+  # Vertical lift for a normal throw.
   throw-lift: 0.25
+  # Vertical lift while jumping.
   throw-lift-jump: 0.40

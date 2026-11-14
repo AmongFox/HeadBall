@@ -39,7 +39,7 @@ public class CraftingManager {
                 plugin,
                 plugin.getSettings().randomTexture(),
                 "ball",
-                "Футбольный мяч"
+                plugin.getMessages().plain("football-name")
         );
 
         ShapedRecipe recipe = new ShapedRecipe(footballKey, result);
@@ -55,7 +55,7 @@ public class CraftingManager {
                 plugin,
                 plugin.getVolleyballSettings().randomTexture(),
                 "volleyball",
-                "Волейбольный мяч"
+                plugin.getMessages().plain("volleyball-name")
         );
 
         ShapedRecipe recipe = new ShapedRecipe(volleyballKey, result);

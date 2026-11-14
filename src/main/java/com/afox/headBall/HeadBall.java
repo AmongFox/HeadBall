@@ -12,11 +12,14 @@ public final class HeadBall extends JavaPlugin {
     private Settings volleyballSettings;
     private NamespacedKey heldBallKey;
     private CraftingManager crafting;
+    private Messages messages;
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
         heldBallKey = new NamespacedKey(this, "held-ball");
+        messages = new Messages(this);
+        messages.load();
         loadSettings();
 
         crafting = new CraftingManager(this);
@@ -61,8 +64,13 @@ public final class HeadBall extends JavaPlugin {
         return heldBallKey;
     }
 
+    public Messages getMessages() {
+        return messages;
+    }
+
     public void reloadSettings() {
         reloadConfig();
+        messages.load();
         loadSettings();
         crafting.apply();
     }

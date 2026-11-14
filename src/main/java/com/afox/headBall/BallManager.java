@@ -48,32 +48,53 @@ public class BallManager {
     }
 
     private void tickAll() {
+        boolean removedAny = false;
         Iterator<Ball> iterator = balls.iterator();
         while (iterator.hasNext()) {
             Ball ball = iterator.next();
+            if (ball.isRemoved()) {
+                unregister(ball, iterator, false);
+                removedAny = true;
+                continue;
+            }
             if (!ball.isAlive()) {
                 int dead = deadTicks.getOrDefault(ball, 0) + 1;
                 if (dead < DEAD_TICKS_LIMIT) {
                     deadTicks.put(ball, dead);
                     continue;
                 }
-                plugin.getLogger().warning("[HeadBall] Removing dead ball at " + ball.getLocation());
-                releaseChunk(ball);
-                hitboxes.remove(ball.getHitboxId());
-                ball.remove();
-                deadTicks.remove(ball);
-                iterator.remove();
+                unregister(ball, iterator, true);
+                removedAny = true;
                 continue;
             }
             deadTicks.remove(ball);
             ball.tick();
+            if (ball.isRemoved()) {
+                unregister(ball, iterator, false);
+                removedAny = true;
+                continue;
+            }
             updateChunk(ball);
         }
 
-        if (++saveTicks >= 200) {
+        if (removedAny) {
+            saveTicks = 0;
+            save();
+        } else if (++saveTicks >= 200) {
             saveTicks = 0;
             save();
         }
+    }
+
+    private void unregister(Ball ball, Iterator<Ball> iterator, boolean warn) {
+        if (warn) {
+            plugin.getLogger().warning("[HeadBall] Removing dead ball at " + ball.getLocation());
+        }
+        releaseChunk(ball);
+        hitboxes.remove(ball.getHitboxId());
+        ball.remove();
+        deadTicks.remove(ball);
+        iterator.remove();
     }
 
     public Ball spawn(Location location, Player owner) {
@@ -103,6 +124,7 @@ public class BallManager {
         hitboxes.remove(ball.getHitboxId());
         ball.remove();
         balls.remove(ball);
+        deadTicks.remove(ball);
         save();
     }
 
@@ -117,6 +139,7 @@ public class BallManager {
             ball.remove();
         }
         balls.clear();
+        deadTicks.clear();
         save();
     }
 
@@ -127,6 +150,7 @@ public class BallManager {
         hitboxes.clear();
         int removed = removeTaggedEntities();
         balls.clear();
+        deadTicks.clear();
         save();
         return removed;
     }
@@ -144,6 +168,7 @@ public class BallManager {
         }
         balls.clear();
         hitboxes.clear();
+        deadTicks.clear();
     }
 
     public int count() {
@@ -183,22 +208,12 @@ public class BallManager {
 
     public void sendLimitMessage(Player player) {
         if (isWorldFull()) {
-            sendConfiguredMessage(player, "messages.world-limit",
-                    "§cДостигнут лимит мячей в мире: §f{limit}", worldLimit());
+            plugin.getMessages().send(player, "world-limit", "limit", worldLimit());
         } else if (isPlayerFull(player)) {
-            sendConfiguredMessage(player, "messages.player-limit",
-                    "§cДостигнут ваш лимит мячей: §f{limit}", playerLimit());
+            plugin.getMessages().send(player, "player-limit", "limit", playerLimit());
         } else {
-            player.sendMessage("§cНе удалось создать мяч.");
+            plugin.getMessages().send(player, "spawn-failed");
         }
-    }
-
-    private void sendConfiguredMessage(Player player, String path, String fallback, int limit) {
-        String message = plugin.getConfig().getString(path, fallback);
-        if (message == null) {
-            message = fallback;
-        }
-        player.sendMessage(message.replace("{limit}", String.valueOf(limit)));
     }
 
     private int countOwnedBy(UUID ownerId) {
@@ -250,7 +265,7 @@ public class BallManager {
             }
             data.save(file);
         } catch (IOException exception) {
-            plugin.getLogger().warning("Не удалось сохранить мячи: " + exception.getMessage());
+            plugin.getLogger().warning("Could not save balls: " + exception.getMessage());
         }
     }
 
