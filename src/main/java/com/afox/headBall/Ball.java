@@ -53,6 +53,7 @@ public class Ball {
 
     protected final Settings settings;
     protected final String texture;
+    private UUID ownerId;
     private final ItemDisplay display;
     private final Interaction hitbox;
     private final UUID hitboxId;
@@ -79,6 +80,7 @@ public class Ball {
 
     protected Ball(Location location, Player owner, Settings settings, String texture, float hitboxWidth, float hitboxHeight) {
         this.settings = settings;
+        this.ownerId = owner == null ? null : owner.getUniqueId();
         this.texture = (texture == null || texture.isBlank()) ? settings.randomTexture() : texture;
         location = location.clone();
         location.setYaw(0f);
@@ -372,5 +374,13 @@ public class Ball {
 
     public String getTexture() {
         return texture;
+    }
+
+    public UUID getOwnerId() {
+        return ownerId;
+    }
+
+    public void setOwnerId(UUID ownerId) {
+        this.ownerId = ownerId;
     }
 }

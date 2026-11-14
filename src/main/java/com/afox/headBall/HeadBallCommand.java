@@ -94,14 +94,14 @@ public class HeadBallCommand implements CommandExecutor, TabCompleter {
         switch (type) {
             case "ball" -> {
                 if (balls.spawn(location, player) == null) {
-                    limitReached(player);
+                    balls.sendLimitMessage(player);
                     return;
                 }
                 player.sendMessage("§aФутбольный мяч создан.");
             }
             case "volleyball" -> {
                 if (balls.spawnVolleyball(location, player) == null) {
-                    limitReached(player);
+                    balls.sendLimitMessage(player);
                     return;
                 }
                 player.sendMessage("§aВолейбольный мяч создан.");
@@ -111,10 +111,6 @@ public class HeadBallCommand implements CommandExecutor, TabCompleter {
                 player.sendMessage("§eДоступные мячи: §f[ball | volleyball]");
             }
         }
-    }
-
-    private void limitReached(Player player) {
-        player.sendMessage("§cДостигнут лимит мячей: §f" + balls.maxBalls());
     }
 
     private Location spawnLocation(Player player) {

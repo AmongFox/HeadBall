@@ -77,7 +77,7 @@ public class BallManager {
     }
 
     public Ball spawn(Location location, Player owner) {
-        if (isFull()) {
+        if (isFull(owner)) {
             return null;
         }
         loadChunk(location);
@@ -88,7 +88,7 @@ public class BallManager {
     }
 
     public VolleyBall spawnVolleyball(Location location, Player owner) {
-        if (isFull()) {
+        if (isFull(owner)) {
             return null;
         }
         loadChunk(location);
@@ -150,12 +150,65 @@ public class BallManager {
         return balls.size();
     }
 
-    public int maxBalls() {
+    public boolean worldLimitEnabled() {
+        return plugin.getConfig().getBoolean("world-limit-enabled", true);
+    }
+
+    public int worldLimit() {
         return Math.max(1, plugin.getConfig().getInt("max-balls", 50));
     }
 
-    public boolean isFull() {
-        return balls.size() >= maxBalls();
+    public boolean playerLimitEnabled() {
+        return plugin.getConfig().getBoolean("player-limit-enabled", true);
+    }
+
+    public int playerLimit() {
+        return Math.max(1, plugin.getConfig().getInt("max-balls-per-player", 5));
+    }
+
+    public boolean isWorldFull() {
+        return worldLimitEnabled() && balls.size() >= worldLimit();
+    }
+
+    public boolean isPlayerFull(Player player) {
+        if (!playerLimitEnabled() || player == null) {
+            return false;
+        }
+        return countOwnedBy(player.getUniqueId()) >= playerLimit();
+    }
+
+    public boolean isFull(Player player) {
+        return isWorldFull() || isPlayerFull(player);
+    }
+
+    public void sendLimitMessage(Player player) {
+        if (isWorldFull()) {
+            sendConfiguredMessage(player, "messages.world-limit",
+                    "§cДостигнут лимит мячей в мире: §f{limit}", worldLimit());
+        } else if (isPlayerFull(player)) {
+            sendConfiguredMessage(player, "messages.player-limit",
+                    "§cДостигнут ваш лимит мячей: §f{limit}", playerLimit());
+        } else {
+            player.sendMessage("§cНе удалось создать мяч.");
+        }
+    }
+
+    private void sendConfiguredMessage(Player player, String path, String fallback, int limit) {
+        String message = plugin.getConfig().getString(path, fallback);
+        if (message == null) {
+            message = fallback;
+        }
+        player.sendMessage(message.replace("{limit}", String.valueOf(limit)));
+    }
+
+    private int countOwnedBy(UUID ownerId) {
+        int count = 0;
+        for (Ball ball : balls) {
+            if (ownerId.equals(ball.getOwnerId())) {
+                count++;
+            }
+        }
+        return count;
     }
 
     public void save() {
@@ -178,6 +231,9 @@ public class BallManager {
             entry.put("y", location.getY());
             entry.put("z", location.getZ());
             entry.put("texture", ball.getTexture());
+            if (ball.getOwnerId() != null) {
+                entry.put("owner", ball.getOwnerId().toString());
+            }
 
             Vector velocity = ball.getVelocity();
             entry.put("vx", velocity.getX());
@@ -222,6 +278,7 @@ public class BallManager {
 
             String type = entry.get("type") == null ? "ball" : String.valueOf(entry.get("type"));
             String texture = entry.get("texture") == null ? null : String.valueOf(entry.get("texture"));
+            UUID ownerId = parseUuid(entry.get("owner"));
 
             loadChunk(location);
             Ball ball;
@@ -230,6 +287,7 @@ public class BallManager {
             } else {
                 ball = new Ball(location, null, plugin.getSettings(), texture);
             }
+            ball.setOwnerId(ownerId);
             ball.setVelocity(new Vector(
                     toDouble(entry.get("vx")),
                     toDouble(entry.get("vy")),
@@ -326,5 +384,16 @@ public class BallManager {
 
     private double toDouble(Object value) {
         return value instanceof Number number ? number.doubleValue() : 0.0;
+    }
+
+    private UUID parseUuid(Object value) {
+        if (value == null) {
+            return null;
+        }
+        try {
+            return UUID.fromString(String.valueOf(value));
+        } catch (IllegalArgumentException exception) {
+            return null;
+        }
     }
 }

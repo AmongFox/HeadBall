@@ -64,8 +64,8 @@ public class KickListener implements Listener {
         }
 
         Player player = event.getPlayer();
-        if (balls.isFull()) {
-            limitReached(player);
+        if (balls.isFull(player)) {
+            balls.sendLimitMessage(player);
             return;
         }
 
@@ -78,22 +78,18 @@ public class KickListener implements Listener {
                     player
             );
             if (ball == null) {
-                limitReached(player);
+                balls.sendLimitMessage(player);
                 return;
             }
             consumeOne(player);
             ball.throwBall(player, strong);
         } else {
             if (balls.spawn(player.getLocation().add(0, 0.3, 0), player) == null) {
-                limitReached(player);
+                balls.sendLimitMessage(player);
                 return;
             }
             consumeOne(player);
         }
-    }
-
-    private void limitReached(Player player) {
-        player.sendMessage("§cДостигнут лимит мячей: §f" + balls.maxBalls());
     }
 
     private void pickup(Player player, Ball ball) {

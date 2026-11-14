@@ -1,4 +1,11 @@
 max-balls: 50
+max-balls-per-player: 2
+world-limit-enabled: true
+player-limit-enabled: true
+
+messages:
+  world-limit: "§cДостигнут лимит мячей в мире: §f{limit}"
+  player-limit: "§cДостигнут ваш лимит мячей: §f{limit}"
 
 crafting:
   enabled: true
