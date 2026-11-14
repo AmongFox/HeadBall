@@ -3,7 +3,7 @@ plugins {
     id("xyz.jpenilla.run-paper") version "3.1.0"
 }
 
-version = "1.0.0"
+version = providers.gradleProperty("pluginVersion").orElse("1.0.0").get()
 
 repositories {
     mavenCentral()
