@@ -48,3 +48,4 @@ Desktop.ini
 !/build.gradle.kts
 !/settings.gradle.kts
 !/src/**
+/Media/

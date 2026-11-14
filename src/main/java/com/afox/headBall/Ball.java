@@ -66,7 +66,7 @@ public class Ball {
     private double lastRenderZ;
 
     public Ball(Location location, Player owner, Settings settings) {
-        this(location, owner, settings, (String) null);
+        this(location, owner, settings, null);
     }
 
     public Ball(Location location, Player owner, Settings settings, String texture) {
@@ -352,10 +352,6 @@ public class Ball {
 
     public boolean isAlive() {
         return display.isValid() && hitbox.isValid();
-    }
-
-    public Interaction getHitbox() {
-        return hitbox;
     }
 
     public UUID getHitboxId() {

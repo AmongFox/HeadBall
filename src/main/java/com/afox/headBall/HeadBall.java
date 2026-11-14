@@ -11,12 +11,16 @@ public final class HeadBall extends JavaPlugin {
     private Settings settings;
     private Settings volleyballSettings;
     private NamespacedKey heldBallKey;
+    private CraftingManager crafting;
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
         heldBallKey = new NamespacedKey(this, "held-ball");
         loadSettings();
+
+        crafting = new CraftingManager(this);
+        crafting.apply();
 
         balls = new BallManager(this);
         balls.start();
@@ -32,6 +36,9 @@ public final class HeadBall extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (crafting != null) {
+            crafting.remove();
+        }
         if (balls != null) {
             balls.stop();
         }
@@ -57,5 +64,6 @@ public final class HeadBall extends JavaPlugin {
     public void reloadSettings() {
         reloadConfig();
         loadSettings();
+        crafting.apply();
     }
 }

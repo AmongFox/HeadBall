@@ -1,4 +1,8 @@
 name: HeadBall
+authors:
+  - AmongFox
+description: "Plugin for game balls"
+website: "https://github.com/AmongFox"
 version: '${version}'
 
 main: com.afox.headball.HeadBall
